@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Products - Cake's Bliss Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .navbar {
+      background-color: #c1121f;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .navbar img { height: 40px; }
+    .navbar a { color: white; margin-left: 20px; text-decoration: none; }
+    .navbar a:hover { text-decoration: underline; }
+    .dashboard {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+    .sidebar {
+      background-color: #f8f8f8;
+      width: 220px;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    .sidebar a {
+      display: block;
+      margin: 15px 0;
+      color: #c1121f;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .sidebar a i { margin-right: 10px; }
+    .sidebar a:hover {
+      background-color: #c1121f;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      background: #fff5f5 url('cakes-pattern.png') repeat;
+    }
+    h1 { color: #c1121f; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background:white;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    table th { background-color: #c1121f; color:white; }
+    button {
+      padding: 5px 10px;
+      margin: 0 5px;
+      cursor: pointer;
+      border:none;
+      border-radius:4px;
+    }
+    .edit-btn { background-color: #007bff; color: white; }
+    .delete-btn { background-color: #dc3545; color: white; }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+   <div class="logo">🍰 Cake's Bliss</div>
+    <div>
+      <a href="/">Home</a>
+      <a href="admin-dashboard.html">Admin Home</a>
+      <a href="login.html">Logout</a>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <div class="sidebar">
+      <a href="admin-dashboard.html"><i class="fa fa-home"></i> Dashboard Home</a>
+      <a href="admin-products.html"><i class="fa fa-box"></i> Manage Products</a>
+      <a href="add-product.html"><i class="fa fa-plus"></i> Add Product</a>
+      <a href="admin-orders.html"><i class="fa fa-shopping-cart"></i> Manage Orders</a>
+      <a href="admin-users.html"><i class="fa fa-users"></i> Manage Users</a>
+      <a href="login.html"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="main">
+      <h1>Manage Products</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productList"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadProducts() {
+      try {
+        const res = await fetch("http://localhost:3001/products");
+        const data = await res.json();
+        const products = data.data;
+        const tbody = document.getElementById("productList");
+        tbody.innerHTML = "";
+        products.forEach(p => {
+          tbody.innerHTML += `
+            <tr>
+              <td><img src="${p.imageUrl}" width="80"/></td>
+              <td>${p.title}</td>
+              <td>${p.price}</td>
+              <td>${p.description}</td>
+              <td>
+                <button class="edit-btn" onclick="editProduct('${p._id}')">Edit</button>
+                <button class="delete-btn" onclick="deleteProduct('${p._id}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch products");
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (confirm("Are you sure you want to delete this product?")) {
+        try {
+          const res = await fetch(`http://localhost:3001/products/${id}`, {
+            method: "DELETE"
+          });
+          if(res.ok){
+            alert("Product deleted successfully!");
+            loadProducts();
+          } else {
+            alert("Failed to delete product.");
+          }
+        } catch(err){
+          console.error(err);
+          alert("Error connecting to server.");
+        }
+      }
+    }
+
+    async function editProduct(id) {
+      const newTitle = prompt("Enter new product name:");
+      const newPrice = prompt("Enter new product price:");
+      const newDesc = prompt("Enter new product description:");
+      if(newTitle && newPrice && newDesc){
+        try {
+          const res = await fetch(`http://localhost:3001/products/${id}`, {
+            method: "PATCH",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+              title: newTitle,
+              price: newPrice,
+              description: newDesc
+            })
+          });
+          if(res.ok){
+            alert("Product updated!");
+            loadProducts();
+          } else {
+            alert("Failed to update product.");
+          }
+        } catch(err){
+          console.error(err);
+          alert("Error connecting to server.");
+        }
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+/* Admin Dashboard Navigation */
+.admin-nav {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  background-color: #C58C6D;
+  padding: 12px 0;
+  margin-bottom: 20px;
+  border-radius: 0 0 8px 8px;
+}
+
+.admin-nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.admin-nav a:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+/* Page Container */
+main {
+  max-width: 1000px;
+  margin: 0 auto 40px;
+  background: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Headings */
+main h1,
+main h2 {
+  color: #C58C6D;
+  margin-bottom: 20px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px 15px;
+  border: 1px solid #eee;
+  text-align: left;
+}
+
+th {
+  background-color: #C58C6D;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Action Buttons inside Tables */
+.actions button {
+  margin-right: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.actions .ship    { background-color: #3498db; }
+.actions .ship:hover    { background-color: #2980b9; }
+.actions .deliver { background-color: #27ae60; }
+.actions .deliver:hover { background-color: #1e8449; }
+.actions .cancel  { background-color: #e74c3c; }
+.actions .cancel:hover  { background-color: #c0392b; }
+.actions .block   { background-color: #e74c3c; }
+.actions .block:hover   { background-color: #c0392b; }
+.actions .unblock { background-color: #27ae60; }
+.actions .unblock:hover { background-color: #1e8449; }
+.actions .del     { background-color: #7f8c8d; }
+.actions .del:hover     { background-color: #606b6d; }
+
+/* Forms */
+form input,
+form select,
+form textarea,
+form button {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+form button {
+  background-color: #C58C6D;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+form button:hover {
+  background-color: #a96e53;
+}
+
+/* Support Bar & Navbar (if reused) */
+.support-bar {
+  background-color: #d10034;
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  padding: 6px 0;
+}
+.main-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #fff5f0;
+  border-bottom: 1px solid #ddd;
+}
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #d10034;
+}
+.login-button {
+  background-color: #27ae60;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+.login-button:hover {
+  background-color: #1e8449;
+}

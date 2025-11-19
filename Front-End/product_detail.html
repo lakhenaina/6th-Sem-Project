@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Detail | Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .product-detail {
+      max-width: 1200px;
+      margin: 40px auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      align-items: flex-start;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .product-detail img {
+      width: 100%;
+      max-width: 450px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .product-detail-content {
+      flex: 1;
+    }
+    .product-detail-content h2 {
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: #c8102e;
+    }
+    .product-detail-content p {
+      margin-bottom: 15px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .product-detail-content .price {
+      font-size: 20px;
+      color: #4CAF50;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    .product-detail-content .option-group {
+      margin-bottom: 15px;
+    }
+    .product-detail-content .option-group label {
+      display: block;
+      margin-top: 5px;
+      font-weight: 600;
+    }
+    .product-detail-content input[type="text"],
+    .product-detail-content input[type="number"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      margin-top: 5px;
+    }
+    .product-detail-content .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .product-detail-content .action-buttons button {
+      background-color: #c1121f;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: 500;
+    }
+    .product-detail-content .action-buttons button:hover {
+      background-color: #a10f1a;
+    }
+  </style>
+</head>
+<body>
+  <!-- Support Bar -->
+  <div class="support-bar">
+    Customer Support [Viber/WhatsApp: 9849647693]
+  </div>
+
+  <!-- Main Navbar identical to index -->
+  <nav class="main-navbar">
+    <div class="navbar-left">
+      <a class="logo-link" href="index.html">
+        <div class="logo">🍰 Cake's Bliss</div>
+      </a>
+      <div class="browse-dropdown">
+        <button class="browse-btn">Browse Categories ▾</button>
+        <div class="dropdown-content">
+          <a href="#">Black Forest Cake</a>
+          <a href="#">Butter Scotch Cake</a>
+          <a href="#">Red Velvet Cake</a>
+          <a href="#">Fruit Cakes</a>
+          <a href="#">Blueberry Cake</a>
+        </div>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <input type="text" id="search-input" placeholder="Search for products">
+      <button id="search-button">🔍</button>
+      <a href="login.html" class="login-button">Login</a>
+    </div>
+  </nav>
+
+  <!-- Product detail -->
+  <div class="product-detail">
+    <img id="product-image" src="" alt="">
+    <div class="product-detail-content">
+      <h2 id="product-title"></h2>
+      <p id="product-description"></p>
+      <p class="price">Base Price: ₨<span id="product-price"></span></p>
+
+      <div class="option-group">
+        <label>Message on cake:</label>
+        <input type="text" id="cake-message" placeholder="Happy Birthday ______">
+      </div>
+      <div class="option-group">
+        <label>Make it Eggless?</label>
+        <label><input type="radio" name="eggless" value="yes"> Yes (+₨100)</label>
+        <label><input type="radio" name="eggless" value="no" checked> No</label>
+      </div>
+      <div class="option-group">
+        <label>Do you need Sugarless?</label>
+        <label><input type="radio" name="sugarless" value="yes"> Yes (+₨50)</label>
+        <label><input type="radio" name="sugarless" value="no" checked> No</label>
+      </div>
+      <div class="option-group">
+        <label>Add Image on Cake?</label>
+        <label><input type="radio" name="imageoncake" value="yes"> Yes (+₨300)</label>
+        <label><input type="radio" name="imageoncake" value="no" checked> No</label>
+      </div>
+      <div class="option-group">
+        <label>Quantity:</label>
+        <input type="number" id="quantity" min="1" value="1">
+      </div>
+      <div class="price">
+        Total: ₨<span id="total-price">0</span>
+      </div>
+      <div class="action-buttons">
+        <button id="add-to-cart">Add to Cart</button>
+        <button id="buy-now">Buy Now</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("search-button").addEventListener("click", function() {
+      const query = document.getElementById("search-input").value.trim();
+      if (query) {
+        window.location.href = `search-results.html?query=${encodeURIComponent(query)}`;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (!id) return;
+      try {
+        const res = await fetch(`http://localhost:3001/products`);
+        const data = await res.json();
+        const product = data.data.find(p => p._id === id);
+        if (!product) return;
+
+        document.getElementById("product-image").src = product.imageUrl;
+        document.getElementById("product-title").textContent = product.title;
+        document.getElementById("product-description").textContent = product.description || "";
+        document.getElementById("product-price").textContent = product.price;
+
+        calculateTotal(product.price);
+
+        document.querySelectorAll("input, #quantity").forEach(input => {
+          input.addEventListener("change", () => calculateTotal(product.price));
+        });
+
+        document.getElementById("add-to-cart").addEventListener("click", () => {
+          const token = localStorage.getItem("userToken");
+          if (!token) {
+            window.location.href = "login.html";
+            return;
+          }
+          let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+          cart.push({
+            productId: id,
+            quantity: parseInt(document.getElementById("quantity").value),
+            message: document.getElementById("cake-message").value,
+            eggless: document.querySelector("input[name='eggless']:checked").value,
+            sugarless: document.querySelector("input[name='sugarless']:checked").value,
+            imageoncake: document.querySelector("input[name='imageoncake']:checked").value
+          });
+          localStorage.setItem("cart", JSON.stringify(cart));
+          alert("Added to cart!");
+        });
+
+        document.getElementById("buy-now").addEventListener("click", () => {
+          const token = localStorage.getItem("userToken");
+          if (!token) {
+            window.location.href = "login.html";
+            return;
+          }
+          alert("Proceed to checkout (not implemented yet).");
+        });
+
+      } catch (err) {
+        console.error("Error loading product detail", err);
+      }
+    });
+
+    function calculateTotal(basePrice) {
+      const quantity = parseInt(document.getElementById("quantity").value) || 1;
+      let total = basePrice * quantity;
+      if (document.querySelector("input[name='eggless']:checked").value === "yes") total += 100 * quantity;
+      if (document.querySelector("input[name='sugarless']:checked").value === "yes") total += 50 * quantity;
+      if (document.querySelector("input[name='imageoncake']:checked").value === "yes") total += 300 * quantity;
+      document.getElementById("total-price").textContent = total;
+    }
+  </script>
+</body>
+</html>

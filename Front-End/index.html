@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Top Support Bar -->
+  <div class="support-bar">
+    Customer Support [Viber/WhatsApp: 9849647693]
+  </div>
+
+  <!-- Main Navbar -->
+  <nav class="main-navbar">
+    <div class="navbar-left">
+      <a class="logo-link" href="index.html">
+        <div class="logo">🍰 Cake's Bliss</div>
+      </a>
+      <div class="browse-dropdown">
+        <button class="browse-btn">Browse Categories ▾</button>
+        <div class="dropdown-content">
+          <a href="#">Black Forest Cake</a>
+          <a href="#">Butter Scotch Cake</a>
+          <a href="#">Red Velvet Cake</a>
+          <a href="#">Fruit Cakes</a>
+          <a href="#">Blueberry Cake</a>
+        </div>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <input type="text" id="search-input" placeholder="Search for products">
+      <button id="search-button">🔍</button>
+      <a href="login.html" class="login-button">Login</a>
+    </div>
+  </nav>
+
+  <!-- Banner -->
+  <div class="banner">
+    <img
+      src="https://images.jdmagicbox.com/quickquotes/listicle/listicle_1670327298414_ijduj_1040x500.jpg"
+      alt="Banner Image"
+      style="width:100%; max-height:400px; object-fit:cover;"
+    />
+  </div>
+
+  <!-- Products Title -->
+  <h1 class="products-title">Our Products</h1>
+
+  <!-- Products Grid -->
+  <div class="products-grid" id="products-grid"></div>
+
+  <!-- Search JS -->
+  <script>
+    document.getElementById("search-button").addEventListener("click", function() {
+      const query = document.getElementById("search-input").value.trim();
+      if (query) {
+        window.location.href = `search-results.html?query=${encodeURIComponent(query)}`;
+      }
+    });
+  </script>
+
+  <!-- Products Loader -->
+  <script src="product.js"></script>
+
+  <!-- Footer -->
+  <footer style="background:#f2f2f2; padding:20px; font-size:14px; line-height:1.5;">
+    <div style="max-width:1200px; margin:auto;">
+      <p><strong>Cake in Nepal:</strong> In Nepal, cake has become a central part of celebrations, symbolizing joy, togetherness, and festivity. Whether it’s a birthday, wedding, or religious holiday, cake plays a key role in making the event memorable. Cake’s Bliss delivers fresh, handcrafted cakes across Nepal with same-day and midnight delivery options.</p>
+      
+      <p>Order delicious cakes online in Nepal with Cake’s Bliss. From Blackforest to Red Velvet, we offer the best cake prices in Nepal with delivery in Kathmandu, Lalitpur, Bhaktapur and other major cities. Celebrate birthdays, anniversaries, or any special occasion with our fresh cakes, gift hampers, and more.</p>
+      
+      <p><strong>Contact Us:</strong> Phone: 9849647693 | Email: support@cakesbliss.com</p>
+      
+      <p>Follow us on: 
+        <a href="#" target="_blank">Facebook</a> | 
+        <a href="#" target="_blank">Instagram</a>
+      </p>
+      <p style="color:#888;">&copy; 2025 Cake’s Bliss. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

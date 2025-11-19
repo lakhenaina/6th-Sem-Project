@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Dashboard | Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .add-to-cart {
+  margin-top: 20px;
+  background-color: #c1121f;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-to-cart:hover {
+  background-color: #a10f1a;
+  transform: scale(1.05);
+}
+
+  </style>
+  <script>
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body>
+  <!-- Support Bar -->
+  <div class="support-bar">Customer Support [Viber/WhatsApp: 9849647693]</div>
+  
+  <!-- Navbar -->
+<nav class="main-navbar" style="
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  flex-wrap: wrap;
+  padding: 10px 20px;
+">
+  <!-- LEFT side -->
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <a class="logo-link" href="customer-dashboard.html">
+      <div class="logo">🍰 Cake's Bliss</div>
+    </a>
+     <div class="browse-dropdown">
+        <button class="browse-btn">Browse Categories ▾</button>
+        <div class="dropdown-content">
+          <a href="#">Black Forest Cake</a>
+          <a href="#">Butter Scotch Cake</a>
+          <a href="#">Red Velvet Cake</a>
+          <a href="#">Fruit Cakes</a>
+          <a href="#">Blueberry Cake</a>
+        </div>
+      </div>
+ 
+    <ul style="display: flex; gap: 15px; list-style: none; margin: 0; padding: 0;">
+      <li><a href="customer-dashboard.html">Home</a></li>
+       <li><a href="customer-about.html">About</a></li>
+      <li><a href="customer-products.html">Products</a></li>
+     
+      <li><a href="customer-contact.html">Contact</a></li>
+      <li><a href="customer-orders.html">My Orders</a></li>
+    </ul>
+  </div>
+
+  <!-- RIGHT side -->
+  <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+    <input type="text" id="search-input" placeholder="Search for products" style="padding:5px 8px; border-radius:4px; border:1px solid #ccc;">
+    <button id="search-button" style="padding:5px 8px;">🔍</button>
+    <a href="cart.html" class="login-button" style="background-color:#4CAF50; color:white; padding:6px 10px; border-radius:4px; text-decoration:none;">🛒 Cart</a>
+    <button onclick="logout()" style="background-color:#c1121f; color:white; padding:6px 10px; border:none; border-radius:4px;">Logout</button>
+  </div>
+</nav>
+
+
+
+  
+  <!-- Main -->
+  <main>
+    <div style="
+      background-color:#ffeaea;
+      padding: 20px;
+      border-radius:12px;
+      margin: 20px auto;
+      max-width: 700px;
+      text-align: center;
+    ">
+      <h1 style="font-size:32px; margin-bottom:10px;">Welcome back, valued customer!</h1>
+      <p>What would you like to do today?</p>
+    </div>
+    <div class="banner">
+      <img
+        src="https://images.jdmagicbox.com/quickquotes/listicle/listicle_1670327298414_ijduj_1040x500.jpg"
+        alt="Banner Image"
+        style="width:100%; max-height:400px; object-fit:cover;"
+      />
+    </div>
+    
+    <section class="page-content">
+      <h2>Featured Cakes</h2>
+      <div class="products-grid" id="featured-products"></div>
+    </section>
+  </main>
+  
+  <!-- JavaScript -->
+ 
+ <script>
+  async function loadFeaturedProducts() {
+    try {
+      const res = await fetch("http://localhost:3001/products");
+      const data = await res.json();
+      const products = data.data || [];
+      const container = document.getElementById("featured-products");
+      container.innerHTML = "";
+      products.forEach(prod => {
+        container.innerHTML += `
+          <div class="product-card">
+            <a href="customer-product-details.html?id=${prod._id}" style="text-decoration:none; color:inherit;">
+              <div class="image-container">
+                <img src="${prod.imageUrl}" alt="${prod.title}" />
+              </div>
+              <h3>${prod.title}</h3>
+              <p>${prod.description || ""}</p>
+              <strong>Rs. ${prod.price}</strong>
+            </a>
+            <button class="cart-icon" onclick="addToCart('${prod._id}')">🛒</button>
+          </div>
+        `;
+      });
+    } catch (err) {
+      console.error("Failed to load products", err);
+    }
+  }
+
+  function addToCart(productId) {
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cart.push(productId);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert("Added to cart!");
+  }
+
+  function logout() {
+    localStorage.removeItem("userId");
+    window.location.href = "index.html";
+  }
+  document.getElementById("search-button").addEventListener("click", function() {
+  const query = document.getElementById("search-input").value.trim();
+  if (query) {
+    window.location.href = `search-results.html?query=${encodeURIComponent(query)}`;
+  }
+});
+
+
+  loadFeaturedProducts();
+</script>
+
+  <footer style="background:#f2f2f2; padding:20px; font-size:14px; line-height:1.5;">
+  <div style="max-width:1200px; margin:auto;">
+    <p><strong>Cake in Nepal:</strong> In Nepal, cake has become a central part of celebrations, symbolizing joy, togetherness, and festivity. Whether it’s a birthday, wedding, or religious holiday, cake plays a key role in making the event memorable. Cake’s Bliss delivers fresh, handcrafted cakes across Nepal with same-day and midnight delivery options.</p>
+    
+    <p>Order delicious cakes online in Nepal with Cake’s Bliss. From Blackforest to Red Velvet, we offer the best cake prices in Nepal with delivery in Kathmandu, Lalitpur, Bhaktapur and other major cities. Celebrate birthdays, anniversaries, or any special occasion with our fresh cakes, gift hampers, and more.</p>
+    
+    <p><strong>Contact Us:</strong> Phone: 9849647693 | Email: support@cakesbliss.com</p>
+    
+    <p>Follow us on: 
+      <a href="#" target="_blank">Facebook</a> | 
+      <a href="#" target="_blank">Instagram</a>
+    </p>
+    <p style="color:#888;">&copy; 2025 Cake’s Bliss. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>

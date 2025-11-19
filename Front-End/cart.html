@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Cart | Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .cart-container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .cart-item {
+      display: flex;
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cart-item img {
+      width: 80px;
+      border-radius: 5px;
+    }
+    .cart-item-info {
+      flex: 1;
+      margin-left: 20px;
+    }
+    .cart-item-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cart-item-actions button {
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+    .cart-item-actions .remove-btn {
+      background: #c1121f;
+    }
+    .cart-item-actions .buy-btn {
+      background: #007bff;
+    }
+    .cart-item-actions .buy-btn:hover {
+      background: #0056b3;
+    }
+    .checkout-btn {
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 20px;
+      text-decoration: none;
+      display: inline-block;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="support-bar">
+    Customer Support [Viber/WhatsApp: 9849647693]
+  </div>
+
+  <nav class="main-navbar">
+    <div class="navbar-left">
+        <a class="logo-link" href="customer-dashboard.html"></a>
+      <div class="logo">🍰 Cake's Bliss</div>
+    <ul class="nav-links">
+        <li><a href="customer-dashboard.html">Home</a></li>
+        <li><a href="customer-about.html">About</a></li>
+        <li><a href="customer-products.html">Products</a></li>
+        <li><a href="customer-contact.html">Contact</a></li>
+        <li><a href="customer-orders.html">My Orders</a></li>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <a href="cart.html" class="login-button">🛒 Cart</a>
+      <a href="login.html" class="login-button">Logout</a>
+    </div>
+  </nav>
+
+  <div class="cart-container">
+    <h1>My Cart</h1>
+    <div id="cartItems"></div>
+    <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
+  </div>
+
+  <script>
+    async function loadCart() {
+      const cartIds = JSON.parse(localStorage.getItem("cart") || "[]");
+      if (cartIds.length === 0) {
+        document.getElementById("cartItems").innerHTML = "<p>Your cart is empty.</p>";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3001/products");
+        const data = await res.json();
+        const products = data.data || [];
+        const filtered = products.filter(p => cartIds.includes(p._id));
+        const container = document.getElementById("cartItems");
+        container.innerHTML = "";
+        filtered.forEach(prod => {
+          container.innerHTML += `
+            <div class="cart-item">
+              <img src="${prod.imageUrl}" />
+              <div class="cart-item-info">
+                <h3>${prod.title}</h3>
+                <p>Rs. ${prod.price}</p>
+              </div>
+              <div class="cart-item-actions">
+                <button class="remove-btn" onclick="removeFromCart('${prod._id}')">Remove</button>
+                <button class="buy-btn" onclick="buyNow('${prod._id}')">Buy Now</button>
+              </div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function removeFromCart(id) {
+      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      cart = cart.filter(item => item !== id);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadCart();
+    }
+
+    function buyNow(productId) {
+      // simple redirect to checkout page for single item
+      window.location.href = `checkout.html?productId=${productId}`;
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Products | Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .products-title { text-align: center; margin-top: 2rem; }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    .product-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .product-card:hover {
+      transform: scale(1.03);
+    }
+    .product-card img {
+      max-width: 100%;
+      border-radius: 6px;
+      height: 160px;
+      object-fit: cover;
+    }
+    .product-card button {
+      background: brown;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      margin-top: 0.5rem;
+      cursor: pointer;
+    }
+    .browse-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .browse-btn {
+      background: brown;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      cursor: pointer;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 160px;
+      z-index: 1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .dropdown-content a {
+      color: black;
+      padding: 8px 12px;
+      display: block;
+      text-decoration: none;
+    }
+    .dropdown-content a:hover {
+      background-color: #f0f0f0;
+    }
+    .browse-dropdown:hover .dropdown-content {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Support Bar -->
+  <div class="support-bar">
+    Customer Support [Viber/WhatsApp: 9849647693]
+  </div>
+
+  <!-- Main Navbar -->
+  <nav class="main-navbar">
+    <div class="navbar-left">
+      <a class="logo-link" href="index.html">
+      <div class="logo">🍰 Cake's Bliss</div>
+      <div class="browse-dropdown">
+        <button class="browse-btn">Browse Categories ▾</button>
+        <div class="dropdown-content">
+          <a href="#">Black Forest Cake</a>
+          <a href="#">Butter Scotch Cake</a>
+          <a href="#">Red Velvet Cake</a>
+          <a href="#">Fruit Cakes</a>
+          <a href="#">Blueberry Cake</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Products Title -->
+  <h1 class="products-title">Our Products</h1>
+  <div class="products-grid" id="products-grid"></div>
+
+  <script src="product.js"></script>
+</body>
+</html>

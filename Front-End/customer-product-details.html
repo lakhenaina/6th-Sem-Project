@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Details | Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .product-detail {
+      max-width: 1000px;
+      margin: 40px auto;
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .product-detail img {
+      width: 400px;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .product-detail-content {
+      flex: 1;
+    }
+    .product-detail-content h2 {
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: #c1121f;
+    }
+    .product-detail-content p {
+      margin-bottom: 15px;
+      color: #555;
+      line-height: 1.5;
+    }
+    .product-detail-content .price {
+      font-size: 22px;
+      color: #4CAF50;
+      margin-bottom: 20px;
+    }
+    .product-detail-content .option-group label {
+      font-weight: 600;
+    }
+    .product-detail-content .option-group {
+      margin-bottom: 15px;
+    }
+    .product-detail-content .add-to-cart,
+    .product-detail-content .buy-now {
+      background-color: #c1121f;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .product-detail-content .add-to-cart:hover,
+    .product-detail-content .buy-now:hover {
+      background-color: #a10f1a;
+    }
+  </style>
+</head>
+<body>
+  <!-- Support Bar -->
+  <div class="support-bar">
+    Customer Support [Viber/WhatsApp: 9849647693]
+  </div>
+
+  <!-- Main Navbar -->
+  <nav class="main-navbar">
+    <div class="navbar-left">
+      <a class="logo-link" href="customer-dashboard.html">
+        <div class="logo">🍰 Cake's Bliss</div>
+      </a>
+      <div class="browse-dropdown">
+        <button class="browse-btn">Browse Categories ▾</button>
+        <div class="dropdown-content">
+          <a href="#">Black Forest</a>
+          <a href="#">Butterscotch</a>
+          <a href="#">Red Velvet</a>
+          <a href="#">Fruit Cakes</a>
+        </div>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a href="cart.html">Cart</a></li>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <input type="text" id="search-input" placeholder="Search...">
+      <button id="search-button">🔍</button>
+      <a href="logout.html" class="login-button">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Product Detail -->
+  <main>
+    <div class="product-detail" id="product-detail">
+      <p>Loading product details...</p>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById("search-button").addEventListener("click", () => {
+      const query = document.getElementById("search-input").value.trim();
+      if (query) {
+        window.location.href = `search-results.html?query=${encodeURIComponent(query)}`;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (!id) return;
+
+      try {
+        const res = await fetch(`http://localhost:3001/products`);
+        const data = await res.json();
+        const product = data.data.find(p => p._id === id);
+        if (!product) {
+          document.getElementById("product-detail").innerHTML = `<p>Product not found.</p>`;
+          return;
+        }
+
+        document.getElementById("product-detail").innerHTML = `
+          <img src="${product.imageUrl}" alt="${product.title}">
+          <div class="product-detail-content">
+            <h2>${product.title}</h2>
+            <p>${product.description || ""}</p>
+            <div class="price">₨${product.price}</div>
+            
+            <div class="option-group">
+              <label>Message on cake:</label>
+              <input type="text" id="cake-message" placeholder="Happy Birthday ____" style="width:100%;padding:8px;">
+            </div>
+            
+            <div class="option-group">
+              <label>Make it Eggless?</label><br>
+              <label><input type="radio" name="eggless" value="yes"> Yes (+₨100)</label>
+              <label><input type="radio" name="eggless" value="no" checked> No</label>
+            </div>
+            <div class="option-group">
+              <label>Sugarless?</label><br>
+              <label><input type="radio" name="sugarless" value="yes"> Yes (+₨50)</label>
+              <label><input type="radio" name="sugarless" value="no" checked> No</label>
+            </div>
+            <div class="option-group">
+              <label>Add Image on Cake?</label><br>
+              <label><input type="radio" name="imageoncake" value="yes"> Yes (+₨300)</label>
+              <label><input type="radio" name="imageoncake" value="no" checked> No</label>
+            </div>
+            <div class="option-group">
+              <label>Quantity:</label>
+              <input type="number" id="quantity" min="1" value="1" style="width:80px;">
+            </div>
+            
+            <div class="price">
+              Total: ₨<span id="total-price">${product.price}</span>
+            </div>
+
+            <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
+            <button class="buy-now" id="buy-now">Buy Now</button>
+          </div>
+        `;
+
+        calculateTotal(product.price);
+
+        document.querySelectorAll("input, #quantity").forEach(el => {
+          el.addEventListener("change", () => calculateTotal(product.price));
+        });
+
+        document.getElementById("add-to-cart").addEventListener("click", () => {
+          let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+          cart.push({
+            productId: id,
+            quantity: parseInt(document.getElementById("quantity").value),
+            message: document.getElementById("cake-message").value,
+            eggless: document.querySelector("input[name='eggless']:checked").value,
+            sugarless: document.querySelector("input[name='sugarless']:checked").value,
+            imageoncake: document.querySelector("input[name='imageoncake']:checked").value
+          });
+          localStorage.setItem("cart", JSON.stringify(cart));
+          alert("Added to cart!");
+        });
+
+        document.getElementById("buy-now").addEventListener("click", () => {
+          // gather current options
+          const message = document.getElementById("cake-message").value;
+          const eggless = document.querySelector("input[name='eggless']:checked").value;
+          const sugarless = document.querySelector("input[name='sugarless']:checked").value;
+          const imageoncake = document.querySelector("input[name='imageoncake']:checked").value;
+          const quantity = parseInt(document.getElementById("quantity").value);
+
+          // store these in localStorage
+          localStorage.setItem("buyNow", JSON.stringify({
+            productId: id,
+            quantity,
+            message,
+            eggless,
+            sugarless,
+            imageoncake
+          }));
+
+          // go to checkout with productId
+          window.location.href = `checkout.html?productId=${id}`;
+        });
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("product-detail").innerHTML = `<p>Error loading product details.</p>`;
+      }
+    });
+
+    function calculateTotal(basePrice) {
+      const qty = parseInt(document.getElementById("quantity").value) || 1;
+      let total = basePrice * qty;
+      if (document.querySelector("input[name='eggless']:checked").value === "yes") total += 100 * qty;
+      if (document.querySelector("input[name='sugarless']:checked").value === "yes") total += 50 * qty;
+      if (document.querySelector("input[name='imageoncake']:checked").value === "yes") total += 300 * qty;
+      document.getElementById("total-price").textContent = total;
+    }
+  </script>
+</body>
+</html>

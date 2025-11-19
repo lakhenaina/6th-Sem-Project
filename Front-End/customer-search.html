@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Results | Cake's Bliss</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="main-navbar">
+    <div class="navbar-left">
+      <a class="logo-link" href="customer-dashboard.html"><div class="logo">🍰 Cake's Bliss</div></a>
+    </div>
+    <div class="navbar-right">
+      <input type="text" id="search-input" placeholder="Search for products">
+      <button id="search-button">🔍</button>
+      <a href="cart.html" class="login-button">🛒 Cart</a>
+      <button onclick="logout()" class="login-button" style="background-color:#4CAF50">Logout</button>
+    </div>
+  </nav>
+
+  <main>
+    <h2>Search Results</h2>
+    <div class="products-grid" id="search-results"></div>
+  </main>
+
+  <script>
+    async function loadSearchResults() {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get("q")?.toLowerCase().trim() || "";
+
+      if (!query) {
+        document.getElementById("search-results").innerHTML = "<p>Please enter a search query.</p>";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3001/products");
+        const data = await res.json();
+        const products = data.data || [];
+
+        const filtered = products.filter(prod =>
+          prod.title.toLowerCase().includes(query) ||
+          (prod.description && prod.description.toLowerCase().includes(query))
+        );
+
+        const container = document.getElementById("search-results");
+        container.innerHTML = "";
+
+        if (filtered.length === 0) {
+          container.innerHTML = `<p>No products found for "${query}".</p>`;
+          return;
+        }
+
+        filtered.forEach(prod => {
+          container.innerHTML += `
+            <div class="product-card">
+              <a href="product-detail.html?id=${prod._id}">
+                <img src="${prod.imageUrl}" alt="${prod.title}" />
+                <h3>${prod.title}</h3>
+                <p>${prod.description || ""}</p>
+                <strong>Rs. ${prod.price}</strong>
+              </a>
+              <button class="cart-icon" onclick="addToCart('${prod._id}')">🛒</button>
+            </div>
+          `;
+        });
+      } catch(err) {
+        console.error("Search failed", err);
+      }
+    }
+
+    document.getElementById("search-button").addEventListener("click", () => {
+      const query = document.getElementById("search-input").value.trim();
+      if (query) {
+        window.location.href = `customer-search.html?q=${encodeURIComponent(query)}`;
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem("userId");
+      window.location.href = "login.html";
+    }
+
+    function addToCart(productId) {
+      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      cart.push(productId);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      alert("Added to cart!");
+    }
+
+    loadSearchResults();
+  </script>
+</body>
+</html>

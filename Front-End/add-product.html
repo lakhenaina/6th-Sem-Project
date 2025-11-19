@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Product - Cake's Bliss Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .navbar {
+      background-color: #c1121f;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .navbar a { color: white; margin-left: 20px; text-decoration: none; }
+    .navbar a:hover { text-decoration: underline; }
+    .dashboard { display: flex; height: calc(100vh - 60px); }
+    .sidebar {
+      background-color: #f8f8f8;
+      width: 220px;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    .sidebar a {
+      display: block;
+      margin: 15px 0;
+      color: #c1121f;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .sidebar a:hover {
+      background-color: #c1121f;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .main {
+      flex: 1;
+      padding: 30px;
+      background: #fff5f5 url('cakes-pattern.png') repeat;
+      overflow-y: auto;
+    }
+    form {
+      background:white;
+      padding:20px;
+      border-radius:8px;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+      max-width:500px;
+      margin:20px auto;
+    }
+    label { display:block; margin-top:10px; }
+    input, textarea, select {
+      width:100%;
+      padding:8px;
+      margin-top:5px;
+      border:1px solid #ccc;
+      border-radius:4px;
+    }
+    button {
+      margin-top:15px;
+      background-color: #c1121f;
+      color:white;
+      border:none;
+      padding:10px 15px;
+      border-radius:4px;
+      cursor:pointer;
+    }
+    button:hover {
+      background-color:#a10f1a;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">🍰 Cake's Bliss</div>
+    <div>
+      <a href="/">Home</a>
+      <a href="admin-dashboard.html">Admin Home</a>
+      <a href="login.html">Logout</a>
+    </div>
+  </div>
+  <div class="dashboard">
+    <div class="sidebar">
+      <a href="admin-dashboard.html"><i class="fa fa-home"></i> Dashboard Home</a>
+      <a href="admin-products.html"><i class="fa fa-box"></i> Manage Products</a>
+      <a href="add-product.html"><i class="fa fa-plus"></i> Add Product</a>
+      <a href="admin-orders.html"><i class="fa fa-shopping-cart"></i> Manage Orders</a>
+      <a href="admin-users.html"><i class="fa fa-users"></i> Manage Users</a>
+      <a href="login.html"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+    <div class="main">
+      <h1>Add New Product</h1>
+      <form id="addProductForm" enctype="multipart/form-data">
+        <label>Product Name</label>
+        <input type="text" name="title" required />
+
+        <label>Price</label>
+        <input type="number" name="price" required />
+
+        <label>Category</label>
+        <select name="category">
+         <option value="Blueberry Cake">Blueberry Cake</option>
+<option value="Black Forest Cake">Black Forest Cake</option>
+<option value="Red Velvet Cake">Red Velvet Cake</option>
+<option value="Fruit Cake">Fruit Cakes</option>
+<option value="Butter Scotch Cake">Butter Scotch Cake</option>
+  <option value="CupCakes">CupCakes</option>
+
+        </select>
+
+        <label>Description</label>
+        <textarea name="description" rows="4" placeholder="Enter product description"></textarea>
+
+        <label>Image</label>
+        <input type="file" name="image" accept="image/*" required />
+
+        <button type="submit">Add Product</button>
+      </form>
+      <div id="result" style="margin-top:20px; color:#c1121f;"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("addProductForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch("http://localhost:3001/add-product", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if(res.ok){
+          document.getElementById("result").textContent = "Product added successfully!";
+          form.reset();
+        } else {
+          document.getElementById("result").textContent = data.message || "Failed to add product.";
+        }
+      } catch(err){
+        console.error(err);
+        document.getElementById("result").textContent = "Error connecting to server.";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Details | Cake's Bliss</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fdfaf6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 30px;
+    }
+    .section h2 {
+      color: #c1121f;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #c1121f;
+      padding-bottom: 5px;
+    }
+    .section p {
+      margin: 5px 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .paid {
+      background: #4caf50;
+      color: white;
+    }
+    .pending {
+      background: #ff9800;
+      color: white;
+    }
+    .cod {
+      background: #2196f3;
+      color: white;
+    }
+    .khalti {
+      background: #9c27b0;
+      color: white;
+    }
+    button {
+      background: #c1121f;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #8b0e0e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Order Details</h1>
+
+    <div class="section" id="orderSummary">
+      <!-- JS will inject order summary here -->
+    </div>
+
+    <div class="section" id="senderDetails"></div>
+    <div class="section" id="receiverDetails"></div>
+    <div class="section" id="deliveryDetails"></div>
+
+    <button id="markPaymentBtn" style="display:none">Mark Payment Received</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      alert("Not authorized");
+      window.location.href = "login.html";
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("id");
+
+    document.addEventListener('DOMContentLoaded', loadOrder);
+
+    function loadOrder() {
+      fetch(`http://localhost:3001/admin/orders/${orderId}`, {
+        headers: { Authorization: "Bearer " + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const order = data.data;
+
+        document.getElementById("orderSummary").innerHTML = `
+          <h2>Order #${order.orderNumber}</h2>
+          <p><strong>Status:</strong> ${order.status}</p>
+          <p><strong>Total Price:</strong> Rs. ${order.total}</p>
+          <p>
+            <strong>Payment Status:</strong> 
+            <span class="badge ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}">${order.paymentStatus.toUpperCase()}</span>
+          </p>
+          <p>
+            <strong>Payment Method:</strong>
+            <span class="badge ${order.paymentMethod === 'COD' ? 'cod' : 'khalti'}">${order.paymentMethod}</span>
+          </p>
+          <p><strong>Order Time:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+        `;
+
+        document.getElementById("senderDetails").innerHTML = `
+          <h2>Sender Details</h2>
+          <p><strong>Full Name:</strong> ${order.deliveryDetails?.senderName || 'N/A'}</p>
+          <p><strong>Phone:</strong> ${order.deliveryDetails?.senderPhone || 'N/A'}</p>
+          <p><strong>Email:</strong> ${order.deliveryDetails?.senderEmail || 'N/A'}</p>
+          <p><strong>Delivery Location:</strong> ${order.deliveryDetails?.deliveryLocation || 'N/A'}</p>
+        `;
+
+        document.getElementById("receiverDetails").innerHTML = `
+          <h2>Receiver Details</h2>
+          <p><strong>Contact 1:</strong> ${order.deliveryDetails?.receiverContact1 || 'N/A'}</p>
+          <p><strong>Contact 2:</strong> ${order.deliveryDetails?.receiverContact2 || 'N/A'}</p>
+        `;
+
+        document.getElementById("deliveryDetails").innerHTML = `
+          <h2>Delivery Details</h2>
+          <p><strong>Delivery Date:</strong> ${order.deliveryDetails?.deliveryDate || 'N/A'}</p>
+          <p><strong>Time Slot:</strong> ${order.deliveryDetails?.deliveryTimeSlot || 'N/A'}</p>
+        `;
+
+        if (order.paymentStatus === "pending") {
+          document.getElementById("markPaymentBtn").style.display = "inline-block";
+          document.getElementById("markPaymentBtn").addEventListener("click", () => markPayment(order._id));
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error loading order");
+      });
+    }
+
+   function markPayment(orderId) {
+  fetch(`http://localhost:3001/admin/orders/${orderId}/payment`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    }
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Payment marked as received");
+    // delay to ensure MongoDB saves it fully
+    setTimeout(() => {
+      location.reload();
+    }, 500);
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error updating payment");
+  });
+}
+
+
+    
+  </script>
+</body>
+</html>
