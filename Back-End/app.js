@@ -30,8 +30,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // static serving
+// Serve HTML normally
 app.use(express.static(path.join(__dirname, 'FRONT-END')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Protect only API routes
+// Protect only admin API routes
+app.use('/admin/api', (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: "Missing token" });
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, "secret");
+    if (decoded.role !== "admin") throw new Error("not admin");
+    next();
+  } catch {
+    return res.status(403).json({ message: "Invalid token" });
+  }
+});
+
+
 
 // create uploads folder if missing
 if (!fs.existsSync('uploads')) {
@@ -54,21 +71,48 @@ mongoose.connect("mongodb+srv://lakhenaina:dzizz056KMfpwWsx@cluster0.0kxtmbo.mon
 app.post('/register', async (req, res) => {
   try {
     const { name, email, password, phoneNumber } = req.body;
+
     if (!name || !email || !password || !phoneNumber) {
       return res.status(400).json({ success: false, message: 'All fields required' });
     }
+
+    // Validation regex (match frontend)
+    const nameRegex = /^[A-Za-z\s]{1,20}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8}$/;
+
+    if (!nameRegex.test(name)) {
+      return res.status(400).json({ success: false, message: 'Name must contain only letters, max 20 chars' });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: 'Email must end with @gmail.com' });
+    }
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({ success: false, message: 'Phone must be exactly 10 digits' });
+    }
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ success: false, message: 'Password must be 8 chars, include uppercase, lowercase, number, symbol' });
+    }
+
+    // Check if email already exists
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ success: false, message: 'Email already registered' });
     }
+
     const hashed = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashed, phoneNumber, role: 'customer' });
     await user.save();
+
     res.json({ success: true, message: "Registered successfully" });
+
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 
 app.post('/login', async (req, res) => {
   try {
@@ -162,13 +206,30 @@ app.patch('/products/:id', async (req, res) => {
   }
 });
 
+
+// ========== ORDER ROUTES ==========
 // ========== ORDER ROUTES ==========
 app.post('/orders', async (req, res) => {
   try {
-    const { userId, items, total, paymentMethod, deliveryDetails } = req.body;
+    const { userId, items, total, paymentMethod,
+            senderName, senderEmail, deliveryLocation,
+            receiverPhone, deliveryDate, timeSlot, orderNotes } = req.body;
 
     if (!items || items.length === 0) {
-      return res.status(400).json({ message: "No items" });
+      return res.status(400).json({ success: false, message: "No items in order" });
+    }
+
+    // check required fields
+    if (!senderName || !senderEmail || !deliveryLocation || !receiverPhone || !deliveryDate) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    // validate products exist
+    const productIds = items.map(i => i.product);
+    const products = await Product.find({ _id: { $in: productIds } });
+
+    if (products.length !== items.length) {
+      return res.status(400).json({ success: false, message: "Some products not found" });
     }
 
     const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
@@ -178,25 +239,34 @@ app.post('/orders', async (req, res) => {
       orderNumber: nextOrderNumber,
       user: userId || null,
       items: items.map(i => ({
-        product: i.productId,
+        product: i.product,
         quantity: i.quantity,
         price: i.price
       })),
       total,
       paymentMethod,
-      paymentStatus: paymentMethod === "Khalti" ? "paid" : "pending",
+      paymentStatus: paymentMethod.toLowerCase() === "esewa" ? "paid" : "pending",
       status: "Pending",
       createdAt: new Date(),
-      deliveryDetails
+      deliveryDetails: {
+        senderName,
+        senderEmail,
+        deliveryLocation,
+        receiverPhone,
+        deliveryDate,
+        timeSlot,
+        orderNotes
+      }
     });
 
     await order.save();
-    res.json({ success: true, message: "Order placed" });
+    res.json({ success: true, message: "Order placed", orderId: order._id });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Order creation failed" });
   }
 });
+
 
 
 

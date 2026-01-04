@@ -1,60 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Products | Cake's Bliss</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* remove underline from product links */
+    /* Preserve your original product card look */
+    .product-card {
+      display: inline-block;
+      width: 220px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 10px;
+      vertical-align: top;
+      position: relative;
+      background: #fff;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .product-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px 8px 0 0;
+    }
+    .product-card h3 {
+      margin: 5px 10px;
+      font-size: 16px;
+    }
+    .product-card p {
+      margin: 0 10px 5px 10px;
+      font-size: 14px;
+      color: #555;
+    }
+    .price {
+      font-weight: bold;
+      margin: 0 10px 10px 10px;
+      color: brown;
+    }
+    .cart-icon {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      cursor: pointer;
+      border: none;
+      background: brown;
+      color: white;
+      border-radius: 5px;
+      padding: 5px;
+    }
     .product-card-link {
       text-decoration: none;
       color: inherit;
       display: block;
     }
   </style>
-  <script>
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      window.location.href = "login.html";
-    }
-  </script>
 </head>
 <body>
-  <div class="support-bar">Customer Support [Viber/WhatsApp: 9849647693]</div>
-  <nav class="main-navbar">
-    <div class="navbar-left">
-      <a class="logo-link" href="customer-dashboard.html"><div class="logo">🍰 Cake's Bliss</div></a>
-      <div class="browse-dropdown">
-        <button class="browse-btn">Browse Categories ▾</button>
-        <div class="dropdown-content">
-          <a href="#">Black Forest Cake</a>
-          <a href="#">Butter Scotch Cake</a>
-          <a href="#">Red Velvet Cake</a>
-          <a href="#">Fruit Cakes</a>
-          <a href="#">Blueberry Cake</a>
-        </div>
-      </div>
-      <ul class="nav-links">
-        <li><a href="customer-dashboard.html">Home</a></li>
-        <li><a href="customer-about.html">About</a></li>
-        <li><a href="customer-products.html">Products</a></li>
-        <li><a href="customer-contact.html">Contact</a></li>
-        <li><a href="customer-orders.html">My Orders</a></li>
-      </ul>
-    </div>
-    <div class="navbar-right">
-      <a href="cart.html" class="login-button">🛒 Cart</a>
-      <button onclick="logout()" class="login-button">Logout</button>
-    </div>
-  </nav>
+   
 
-  <main>
-    <h1 class="products-title">Our Products</h1>
-    <div class="products-grid" id="products-grid"></div>
-  </main>
+  <!-- Main Navbar -->
+<div class="support-bar">Customer Support [Viber/WhatsApp: 9849647693]</div> <nav class="main-navbar"> <div class="navbar-left"> <a class="logo-link" href="customer-dashboard.html"><div class="logo">🍰 Cake's Bliss</div></a> <div class="browse-dropdown"> <button class="browse-btn">Browse Categories ▾</button> <div class="dropdown-content"> <a href="#">Black Forest Cake</a> <a href="#">Butter Scotch Cake</a> <a href="#">Red Velvet Cake</a> <a href="#">Fruit Cakes</a> <a href="#">Blueberry Cake</a> </div> </div> <ul class="nav-links"> <li><a href="customer-dashboard.html">Home</a></li> <li><a href="customer-about.html">About</a></li> <li><a href="customer-products.html">Products</a></li> <li><a href="customer-contact.html">Contact</a></li> <li><a href="customer-orders.html">My Orders</a></li> </ul> </div> <div class="navbar-right"> <a href="cart.html" class="login-button">🛒 Cart</a> <button onclick="logout()" class="login-button">Logout</button> </div> </nav>
+
+  <!-- <h1>Our Products</h1> -->
+  <div id="products-grid"></div>
 
   <script>
+    const userId = localStorage.getItem("userId");
+    if (!userId) window.location.href = "login.html";
+
     async function loadProducts() {
       try {
         const res = await fetch("http://localhost:3001/products");
@@ -62,44 +76,45 @@
         const products = data.data || [];
         const grid = document.getElementById("products-grid");
         grid.innerHTML = "";
+
         products.forEach(prod => {
           grid.innerHTML += `
-           <a href="customer-product-details.html?id=${prod._id}">
-
-              <div class="product-card">
-                <div class="image-container">
-                  <img src="${prod.imageUrl}" alt="${prod.title}">
-                  <button class="cart-icon" onclick="event.stopPropagation(); event.preventDefault(); addToCart('${prod._id}')">🛒</button>
-                </div>
+            <div class="product-card">
+              <a class="product-card-link" href="customer-product-details.html?id=${prod._id}">
+                <img src="${prod.imageUrl}" alt="${prod.title}">
                 <h3>${prod.title}</h3>
-                <p>${prod.description || ""}</p>
+                <p>${prod.description || ''}</p>
                 <div class="price">Rs. ${prod.price}</div>
-              </div>
-            </a>
+              </a>
+              <button class="cart-icon" onclick="addToCart('${prod._id}')">🛒</button>
+            </div>
           `;
         });
-      } catch (err) {
-        console.error("Error loading products", err);
+      } catch(err) {
+        console.error(err);
       }
     }
-   
 
     function addToCart(productId) {
       let cart = JSON.parse(localStorage.getItem("cart") || "[]");
       const existing = cart.find(item => item.productId === productId);
+
       if (existing) {
         existing.quantity += 1;
       } else {
         cart.push({ productId, quantity: 1 });
       }
+
       localStorage.setItem("cart", JSON.stringify(cart));
       alert("Added to cart!");
     }
+
     function logout() {
       localStorage.removeItem("userId");
       localStorage.removeItem("token");
       window.location.href = "login.html";
     }
+
     loadProducts();
   </script>
 </body>

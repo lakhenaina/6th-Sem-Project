@@ -1,314 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout - Cake's Bliss</title>
-  <style>
-    :root {
-      --primary: #c1121f;
-      --secondary: #f7f7f7;
-      --text: #333;
-      --border: #ddd;
-    }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: var(--secondary);
-      color: var(--text);
-    }
-    .checkout-container {
-      max-width: 1100px;
-      margin: 2rem auto;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-    .order-summary, .payment-section {
-      padding: 2rem;
-    }
-    .order-summary h2,
-    .payment-section h2 {
-      margin-top: 0;
-      color: var(--primary);
-    }
-    .item {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding: 0.5rem 0;
-    }
-    .total {
-      font-weight: bold;
-      margin-top: 1rem;
-      text-align: right;
-      font-size: 1.2rem;
-    }
-    .billing-details {
-      margin-top: 2rem;
-    }
-    .billing-details label {
-      display: block;
-      margin-top: 0.5rem;
-      font-weight: 600;
-    }
-    .billing-details input,
-    .billing-details textarea,
-    .billing-details select {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.3rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
-    .payment-methods label {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1rem;
-      cursor: pointer;
-    }
-    .payment-methods input[type="radio"] {
-      margin-right: 0.5rem;
-    }
-    .place-order-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      width: 100%;
-      padding: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 1rem;
-      font-size: 1rem;
-    }
-    .place-order-btn:hover {
-      background: #9e0c17;
-    }
-    @media(max-width: 768px){
-      .checkout-container {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Checkout - Cake's Bliss</title>
+<style>
+:root {
+  --primary: #c1121f;
+  --secondary: #f7f7f7;
+  --text: #333;
+  --border: #ddd;
+}
+body {
+  margin:0;font-family:"Segoe UI",sans-serif;background:var(--secondary);color:var(--text);
+}
+.checkout-container{
+  max-width:1100px;margin:2rem auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 0 15px rgba(0,0,0,0.1);display:grid;grid-template-columns:1fr 1fr;gap:1rem;
+}
+.order-summary,.payment-section{padding:2rem;}
+.order-summary h2,.payment-section h2{margin-top:0;color:var(--primary);}
+.item{display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:0.5rem 0;}
+.total{font-weight:bold;margin-top:1rem;text-align:right;font-size:1.2rem;}
+.billing-details{margin-top:2rem;}
+.billing-details label{display:block;margin-top:0.5rem;font-weight:600;}
+.billing-details input, .billing-details textarea, .billing-details select{width:100%;padding:0.5rem;margin-top:0.3rem;border:1px solid var(--border);border-radius:4px;}
+.payment-methods label{display:flex;align-items:center;margin-bottom:1rem;cursor:pointer;}
+.payment-methods input[type="radio"]{margin-right:0.5rem;}
+.place-order-btn{background:var(--primary);color:white;border:none;width:100%;padding:1rem;border-radius:5px;cursor:pointer;margin-top:1rem;font-size:1rem;}
+.place-order-btn:hover{background:#9e0c17;}
+@media(max-width:768px){.checkout-container{grid-template-columns:1fr;}}
+</style>
 </head>
 <body>
-  <div class="checkout-container">
-    <div class="order-summary">
-      <h2>Order Summary</h2>
-      <div id="orderItems"></div>
-      <div class="total">Total: Rs. <span id="orderTotal">0</span></div>
-    </div>
-    <div class="payment-section">
-      <h2>Billing & Delivery Details</h2>
-      <div class="billing-details">
-        <label>Sender's Full Name *</label>
-        <input type="text" id="senderName" required>
-        
-        <label>Sender's Phone *</label>
-        <input type="text" id="senderPhone" required>
-        
-        <label>Sender's Email *</label>
-        <input type="email" id="senderEmail" required>
-
-        
-        <label>Delivery Location *</label>
-        <input type="text" id="deliveryLocation" required>
-        
-        <label>Receiver Contact Number (1st) *</label>
-        <input type="text" id="receiverPhone1" required>
-        
-        <label>Receiver Contact Number (2nd) (optional)</label>
-        <input type="text" id="receiverPhone2">
-        
-        <label>Delivery Date *</label>
-        <input type="date" id="deliveryDate" required>
-        
-        <label>Time Slot for Delivery (optional)</label>
-        <select id="timeSlot">
-          <option value="">-- Select Time Slot --</option>
-          <option>10:00 AM - 01:00 PM</option>
-          <option>01:00 PM - 04:00 PM</option>
-          <option>04:00 PM - 07:00 PM</option>
-        </select>
-        
-        <label>Order Notes (optional)</label>
-        <textarea id="orderNotes"></textarea>
-      </div>
-      
-      <h2>Payment Options</h2>
-      <div class="payment-methods">
-        <label><input type="radio" name="paymentMethod" value="cod" checked> Cash on Delivery</label>
-        <label><input type="radio" name="paymentMethod" value="khalti"> Pay with Khalti</label>
-      </div>
-      <button class="place-order-btn" onclick="placeOrder()">Place Order</button>
-    </div>
+<div class="checkout-container">
+  <div class="order-summary">
+    <h2>Order Summary</h2>
+    <div id="orderItems"></div>
+    <div class="total">Total: Rs. <span id="orderTotal">0</span></div>
   </div>
 
-  <script src="https://khalti.com/static/khalti-checkout.js"></script>
-  
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const singleProductId = urlParams.get("productId");
-      let productIds;
+  <div class="payment-section">
+    <h2>Billing & Delivery Details</h2>
+    <div class="billing-details">
+      <label>Sender's Full Name *</label>
+      <input type="text" id="senderName" required>
 
-      if (singleProductId) {
-        productIds = [singleProductId];
-      } else {
-        const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
-        productIds = cartItems.map(c => c.productId);
-      }
+      <label>Sender's Email *</label>
+      <input type="email" id="senderEmail" required>
 
-      if (productIds.length === 0) {
-        document.getElementById("orderItems").innerHTML = "<p>Your cart is empty.</p>";
-        document.getElementById("orderTotal").textContent = "0";
-        return;
-      }
+      <label>Delivery Location *</label>
+      <input type="text" id="deliveryLocation" required>
 
-      try {
-        const res = await fetch("http://localhost:3001/products");
-        const data = await res.json();
-        const products = data.data || [];
-        const selected = products.filter(p => productIds.includes(p._id));
+      <label>Receiver Contact Number *</label>
+      <input type="text" id="receiverPhone" required>
 
-        let total = 0;
-        const orderItems = document.getElementById("orderItems");
-        orderItems.innerHTML = "";
+      <label>Delivery Date *</label>
+      <input type="date" id="deliveryDate" required>
 
-        selected.forEach(prod => {
-          total += prod.price;
-          orderItems.innerHTML += `
-            <div class="item">
-              <span>${prod.title} x 1</span>
-              <span>Rs. ${prod.price}</span>
-            </div>
-          `;
-        });
+      <label>Time Slot (optional)</label>
+      <select id="timeSlot">
+        <option value="">-- Select Time Slot --</option>
+        <option>10:00 AM - 01:00 PM</option>
+        <option>01:00 PM - 04:00 PM</option>
+        <option>04:00 PM - 07:00 PM</option>
+      </select>
 
-        document.getElementById("orderTotal").textContent = total;
-        window.checkoutTotal = total;
-      } catch (err) {
-        console.error(err);
+      <label>Order Notes (optional)</label>
+      <textarea id="orderNotes"></textarea>
+    </div>
+
+    <h2>Payment Options</h2>
+    <div class="payment-methods">
+      <label><input type="radio" name="paymentMethod" value="cod" checked> Cash on Delivery</label>
+      <label><input type="radio" name="paymentMethod" value="esewa"> Pay with eSewa</label>
+    </div>
+
+    <button class="place-order-btn" onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
+  if(!cartItems.length){
+    document.getElementById("orderItems").innerHTML = "<p>Your cart is empty.</p>";
+    document.getElementById("orderTotal").textContent = "0";
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3001/products");
+    const data = await res.json();
+    const products = data.data || [];
+
+    let total = 0;
+    const orderItems = document.getElementById("orderItems");
+    orderItems.innerHTML = "";
+
+    cartItems.forEach(ci => {
+      const prod = products.find(p => p._id === ci.product);
+      if(prod){
+        const qty = ci.quantity || 1;
+        total += prod.price * qty;
+        orderItems.innerHTML += `<div class="item"><span>${prod.title} x ${qty}</span><span>Rs. ${prod.price * qty}</span></div>`;
       }
     });
 
-    const khaltiConfig = {
-      publicKey: "test_public_key_dc74eaa45f9145a3b802f7ea353aa76f",
-      productIdentity: "cake-order",
-      productName: "Cake's Bliss Order",
-      productUrl: window.location.href,
-      eventHandler: {
-        onSuccess(payload) {
-          console.log(payload);
-          alert("Payment successful via Khalti!");
-          localStorage.removeItem("cart");
-          window.location.href = "order-history.html";
-        },
-        onError(error) {
-          console.error(error);
-          alert("Payment failed");
-        },
-        onClose() {
-          console.log('Khalti widget closed');
-        }
-      }
-    };
-    const checkout = new KhaltiCheckout(khaltiConfig);
+    document.getElementById("orderTotal").textContent = total;
+    window.checkoutTotal = total;
+  } catch(err){
+    console.error(err);
+  }
+});
 
-    async function placeOrder() {
-      const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+async function placeOrder(){
+  const method = document.querySelector('input[name="paymentMethod"]:checked').value;
 
-      const senderName = document.getElementById("senderName").value.trim();
-      const senderPhone = document.getElementById("senderPhone").value.trim();
-      const senderEmail = document.getElementById("senderEmail").value.trim();
-      const deliveryLocation = document.getElementById("deliveryLocation").value.trim();
-      const receiverPhone1 = document.getElementById("receiverPhone1").value.trim();
-      const receiverPhone2 = document.getElementById("receiverPhone2").value.trim();
-      const deliveryDate = document.getElementById("deliveryDate").value.trim();
-      const timeSlot = document.getElementById("timeSlot").value;
-      const orderNotes = document.getElementById("orderNotes").value.trim();
+  const senderName = document.getElementById("senderName").value.trim();
+  const senderEmail = document.getElementById("senderEmail").value.trim();
+  const deliveryLocation = document.getElementById("deliveryLocation").value.trim();
+  const receiverPhone = document.getElementById("receiverPhone").value.trim();
+  const deliveryDate = document.getElementById("deliveryDate").value.trim();
+  const timeSlot = document.getElementById("timeSlot").value;
+  const orderNotes = document.getElementById("orderNotes").value.trim();
 
-      if (!senderName || !senderPhone || !deliveryLocation || !receiverPhone1 || !deliveryDate) {
-        alert("Please fill all required fields.");
-        return;
-      }
+  if(!senderName || !senderEmail || !deliveryLocation || !receiverPhone || !deliveryDate){
+    alert("Please fill all required fields.");
+    return;
+  }
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const singleProductId = urlParams.get("productId");
-      let productIds;
+  const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
+  if(!cartItems.length){
+    alert("Your cart is empty.");
+    return;
+  }
 
-      if (singleProductId) {
-        productIds = [singleProductId];
+  const userId = localStorage.getItem("userId");
+  if(!userId){
+    alert("You must log in first.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3001/products");
+    const data = await res.json();
+    const products = data.data || [];
+
+   const items = cartItems.map(ci => {
+  const prod = products.find(p => p._id === ci.productId);
+  if(!prod) throw new Error("Product not found");
+  return { product: prod._id, quantity: ci.quantity || 1, price: prod.price };
+});
+
+
+    const totalAmount = items.reduce((sum,i)=>sum+i.price*i.quantity,0);
+
+    const orderResponse = await fetch("http://localhost:3001/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        items,
+        total: totalAmount,
+        paymentMethod: method === "esewa" ? "eSewa" : "COD",
+        senderName,
+        senderEmail,
+        deliveryLocation,
+        receiverPhone,
+        deliveryDate,
+        timeSlot,
+        orderNotes
+      })
+    });
+
+    const result = await orderResponse.json();
+    if(result.success){
+      localStorage.removeItem("cart");
+      if(method === "esewa"){
+        const esewaUrl = `https://esewa.com.np/epay/main?amt=${totalAmount}&pid=${result.orderId}&su=${window.location.origin}/order-success.html&fu=${window.location.origin}/order-fail.html`;
+        window.location.href = esewaUrl;
       } else {
-        const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
-        productIds = cartItems.map(c => c.productId);
+        alert("Order placed successfully! Pay on delivery.");
+        window.location.href = "order-history.html";
       }
-
-      const userId = localStorage.getItem("userId");
-
-      if (!userId) {
-        alert("You must log in first.");
-        return;
-      }
-
-      if (!productIds.length) {
-        alert("Your cart is empty.");
-        return;
-      }
-
-      try {
-        const res = await fetch("http://localhost:3001/products");
-        const data = await res.json();
-        const products = data.data || [];
-        const selected = products.filter(p => productIds.includes(p._id));
-
-        const items = selected.map(p => ({
-          product: p._id,
-          quantity: 1,
-          price: p.price
-        }));
-
-        const orderResponse = await fetch("http://localhost:3001/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            items,
-            total: window.checkoutTotal,
-            paymentMethod: method === "khalti" ? "Khalti" : "COD",
-            senderName,
-            senderPhone,
-            senderEmail,
-            deliveryLocation,
-            receiverPhone1,
-            receiverPhone2,
-            deliveryDate,
-            timeSlot,
-            orderNotes
-          })
-        });
-
-        const result = await orderResponse.json();
-
-        if (result.success) {
-          if (method === "khalti") {
-            checkout.show({ amount: (window.checkoutTotal || 0) * 100 });
-          } else {
-            alert("Order placed successfully! Please pay on delivery.");
-            localStorage.removeItem("cart");
-            window.location.href = "order-history.html";
-          }
-        } else {
-          alert("Failed to place order: " + result.message);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong while placing the order.");
-      }
+    } else {
+      alert("Failed to place order: " + (result.message || "Try again"));
     }
-  </script>
+  } catch(err){
+    console.error(err);
+    alert("Something went wrong: " + err.message);
+  }
+}
+</script>
 </body>
 </html>

@@ -44,7 +44,7 @@
     if (data.success) {
       if (data.role === "admin") {
         localStorage.setItem("adminToken", data.token);  // FIXED HERE
-        window.location.href = "admin-orders.html";
+        window.location.href = "admin-products.html";
       } else {
         localStorage.setItem("userId", data.userId);
         window.location.href = "customer-dashboard.html";

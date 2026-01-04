@@ -28,8 +28,23 @@
       padding: 0.7rem;
       border: 1px solid #ddd;
       border-radius: 4px;
+      box-sizing: border-box;
     }
-    button {
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper button {
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: brown;
+      font-weight: bold;
+    }
+    button.submit-btn {
       width: 100%;
       padding: 0.7rem;
       background: brown;
@@ -38,7 +53,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover { background: #a52a2a; }
+    button.submit-btn:hover { background: #a52a2a; }
     .error { color: red; text-align: center; margin-top: 0.5rem; }
     p { text-align: center; margin-top: 1rem; }
   </style>
@@ -49,22 +64,56 @@
     <form id="registerForm">
       <input type="text" name="name" placeholder="Naina Lakhe" required />
       <input type="email" name="email" placeholder="naina@gmail.com" required />
-      <input type="password" name="password" placeholder="•••••••" required />
-      <input type="tel" name="phoneNumber" placeholder="9841477502" required />
-      <button type="submit">Register</button>
+      
+      <div class="password-wrapper">
+        <input type="password" id="password" name="password" placeholder="•••••••" required />
+        <button type="button" id="togglePassword">Show</button>
+      </div>
+      
+      <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="9841477502" required />
+      
+      <button type="submit" class="submit-btn">Register</button>
       <p id="error" class="error"></p>
     </form>
     <p>Already have an account? <a href="login.html" style="color:brown;">Login here</a></p>
   </div>
 
   <script>
-    document.getElementById('registerForm').addEventListener('submit', async (e)=>{
+    // Toggle password visibility
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    togglePasswordBtn.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        togglePasswordBtn.textContent = 'Hide';
+      } else {
+        passwordInput.type = 'password';
+        togglePasswordBtn.textContent = 'Show';
+      }
+    });
+
+    // Restrict phone input to digits only and max 10 digits
+    const phoneInput = document.getElementById('phoneNumber');
+    phoneInput.addEventListener('input', (e) => {
+      // Remove non-digit characters
+      e.target.value = e.target.value.replace(/\D/g, '');
+      // Limit to 10 digits
+      if (e.target.value.length > 10) {
+        e.target.value = e.target.value.slice(0, 10);
+      }
+    });
+
+    // Form submission
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target));
-      if (!data.name || !data.email || !data.password || !data.phoneNumber) {
-        document.getElementById('error').textContent = "Name, Email, password, and phone number are required";
+
+      // Validate phone number length
+      if (data.phoneNumber.length !== 10) {
+        document.getElementById('error').textContent = "Phone number must be exactly 10 digits.";
         return;
       }
+
       try {
         const res = await fetch('http://localhost:3001/register', {
           method: 'POST',

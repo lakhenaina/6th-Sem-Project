@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Cart | Cake's Bliss</title>
   <link rel="stylesheet" href="style.css" />
@@ -30,8 +30,7 @@
     }
     .cart-item-actions {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      gap: 5px;
     }
     .cart-item-actions button {
       border: none;
@@ -40,103 +39,113 @@
       cursor: pointer;
       color: white;
     }
-    .cart-item-actions .remove-btn {
-      background: #c1121f;
-    }
-    .cart-item-actions .buy-btn {
-      background: #007bff;
-    }
-    .cart-item-actions .buy-btn:hover {
-      background: #0056b3;
-    }
+    .cart-item-actions .remove-btn { background: #c1121f; }
+    .cart-item-actions .inc-btn { background: #28a745; }
+    .cart-item-actions .dec-btn { background: #007bff; }
     .checkout-btn {
-      background: #28a745;
+      background: #ff8c00;
       color: white;
       padding: 10px 20px;
       margin-top: 20px;
-      text-decoration: none;
       display: inline-block;
       border-radius: 5px;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  <div class="support-bar">
-    Customer Support [Viber/WhatsApp: 9849647693]
-  </div>
+  <div class="support-bar"> Customer Support [Viber/WhatsApp: 9849647693] </div> <nav class="main-navbar"> <div class="navbar-left"> <a class="logo-link" href="customer-dashboard.html"></a> <div class="logo">🍰 Cake's Bliss</div> <ul class="nav-links"> <li><a href="customer-dashboard.html">Home</a></li> <li><a href="customer-about.html">About</a></li> <li><a href="customer-products.html">Products</a></li> <li><a href="customer-contact.html">Contact</a></li> <li><a href="customer-orders.html">My Orders</a></li> </ul> </div> <div class="navbar-right"> <a href="cart.html" class="login-button">🛒 Cart</a> <a href="login.html" class="login-button">Logout</a> </div> </nav>
+  
+ <div class="cart-container">
+  <h1>My Cart</h1>
+  <div id="cartItems"></div>
+  <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
+</div>
 
-  <nav class="main-navbar">
-    <div class="navbar-left">
-        <a class="logo-link" href="customer-dashboard.html"></a>
-      <div class="logo">🍰 Cake's Bliss</div>
-    <ul class="nav-links">
-        <li><a href="customer-dashboard.html">Home</a></li>
-        <li><a href="customer-about.html">About</a></li>
-        <li><a href="customer-products.html">Products</a></li>
-        <li><a href="customer-contact.html">Contact</a></li>
-        <li><a href="customer-orders.html">My Orders</a></li>
-      </ul>
-    </div>
-    <div class="navbar-right">
-      <a href="cart.html" class="login-button">🛒 Cart</a>
-      <a href="login.html" class="login-button">Logout</a>
-    </div>
-  </nav>
+<script>
+  async function loadCart() {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const container = document.getElementById("cartItems");
+    if(cart.length === 0){
+      container.innerHTML = "<p>Your cart is empty.</p>";
+      return;
+    }
 
-  <div class="cart-container">
-    <h1>My Cart</h1>
-    <div id="cartItems"></div>
-    <a href="checkout.html" class="checkout-btn">Proceed to Checkout</a>
-  </div>
+    try {
+      const res = await fetch("http://localhost:3001/products");
+      const data = await res.json();
+      const products = data.data || [];
+      container.innerHTML = "";
 
-  <script>
-    async function loadCart() {
-      const cartIds = JSON.parse(localStorage.getItem("cart") || "[]");
-      if (cartIds.length === 0) {
-        document.getElementById("cartItems").innerHTML = "<p>Your cart is empty.</p>";
-        return;
-      }
-
-      try {
-        const res = await fetch("http://localhost:3001/products");
-        const data = await res.json();
-        const products = data.data || [];
-        const filtered = products.filter(p => cartIds.includes(p._id));
-        const container = document.getElementById("cartItems");
-        container.innerHTML = "";
-        filtered.forEach(prod => {
+      cart.forEach(item => {
+        const prod = products.find(p => p._id === item.productId);
+        if(prod){
           container.innerHTML += `
             <div class="cart-item">
               <img src="${prod.imageUrl}" />
               <div class="cart-item-info">
                 <h3>${prod.title}</h3>
-                <p>Rs. ${prod.price}</p>
+                <p>Price: Rs. ${prod.price}</p>
+                <p>Qty: ${item.quantity}</p>
               </div>
-              <div class="cart-item-actions">
-                <button class="remove-btn" onclick="removeFromCart('${prod._id}')">Remove</button>
-                <button class="buy-btn" onclick="buyNow('${prod._id}')">Buy Now</button>
-              </div>
+   <div class="cart-item-actions">
+  <button class="dec-btn" onclick="changeQuantity('${item.productId}', -1)">-</button>
+  <button class="inc-btn" onclick="changeQuantity('${item.productId}', 1)">+</button>
+  <button class="remove-btn" onclick="removeFromCart('${item.productId}')">Remove</button>
+  <button class="remove-btn" onclick="buyNow('${item.productId}')">Buy Now</button>
+</div>
+
+
             </div>
           `;
-        });
-      } catch (err) {
-        console.error(err);
-      }
+        }
+      });
+    } catch(err){
+      console.error(err);
     }
+  }
 
-    function removeFromCart(id) {
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      cart = cart.filter(item => item !== id);
+  function removeFromCart(productId){
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cart = cart.filter(item => item.productId !== productId);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    loadCart();
+  }
+
+  function changeQuantity(productId, delta){
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const item = cart.find(i => i.productId === productId);
+    if(item){
+      item.quantity += delta;
+      if(item.quantity <= 0){
+        cart = cart.filter(i => i.productId !== productId);
+      }
       localStorage.setItem("cart", JSON.stringify(cart));
       loadCart();
     }
+  }
+function buyNow(productId){
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const item = cart.find(i => i.productId === productId);
+  if(item){
+    alert(`You bought ${item.quantity} of this product!`);
+    // optionally remove from cart after buying
+   
+  }
+  // Redirect to checkout page with the single product ID
+  window.location.href = `checkout.html?productId=${productId}`;
+}
 
-    function buyNow(productId) {
-      // simple redirect to checkout page for single item
-      window.location.href = `checkout.html?productId=${productId}`;
-    }
 
-    loadCart();
-  </script>
+
+  function logout(){
+    localStorage.removeItem("userId");
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+  }
+
+  loadCart();
+</script>
+
 </body>
 </html>

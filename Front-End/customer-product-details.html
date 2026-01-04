@@ -177,18 +177,14 @@
         });
 
         document.getElementById("add-to-cart").addEventListener("click", () => {
-          let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-          cart.push({
-            productId: id,
-            quantity: parseInt(document.getElementById("quantity").value),
-            message: document.getElementById("cake-message").value,
-            eggless: document.querySelector("input[name='eggless']:checked").value,
-            sugarless: document.querySelector("input[name='sugarless']:checked").value,
-            imageoncake: document.querySelector("input[name='imageoncake']:checked").value
-          });
-          localStorage.setItem("cart", JSON.stringify(cart));
-          alert("Added to cart!");
-        });
+  let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  cart.push(id);  // SAME FORMAT AS HOME PAGE
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert("Added to cart!");
+});
+
 
         document.getElementById("buy-now").addEventListener("click", () => {
           // gather current options
