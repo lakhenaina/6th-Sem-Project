@@ -98,9 +98,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     orderItems.innerHTML = "";
 
     cartItems.forEach(ci => {
-      const prod = products.find(p => p._id === ci.product);
+      const productId = typeof ci === 'string' ? ci : (ci.productId || ci.product);
+      const prod = products.find(p => p._id === productId);
       if(prod){
-        const qty = ci.quantity || 1;
+        const qty = (typeof ci === 'object' ? ci.quantity : null) || 1;
         total += prod.price * qty;
         orderItems.innerHTML += `<div class="item"><span>${prod.title} x ${qty}</span><span>Rs. ${prod.price * qty}</span></div>`;
       }
@@ -147,17 +148,22 @@ async function placeOrder(){
     const products = data.data || [];
 
    const items = cartItems.map(ci => {
-  const prod = products.find(p => p._id === ci.productId);
+  const productId = typeof ci === 'string' ? ci : (ci.productId || ci.product);
+  const prod = products.find(p => p._id === productId);
   if(!prod) throw new Error("Product not found");
-  return { product: prod._id, quantity: ci.quantity || 1, price: prod.price };
+  return { product: prod._id, quantity: (typeof ci === 'object' ? ci.quantity : null) || 1, price: prod.price };
 });
 
 
     const totalAmount = items.reduce((sum,i)=>sum+i.price*i.quantity,0);
 
+    const token = localStorage.getItem("userToken");
     const orderResponse = await fetch("http://localhost:3001/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${token}` : ""
+      },
       body: JSON.stringify({
         userId,
         items,

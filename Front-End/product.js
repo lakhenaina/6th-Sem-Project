@@ -60,7 +60,17 @@ function addToCart(productId) {
     return;
   }
   let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-  cart.push(productId);
+  const existingItem = cart.find(item => item.productId === productId || item === productId);
+  if(existingItem){
+    if(typeof existingItem === 'string'){
+      const index = cart.indexOf(existingItem);
+      cart[index] = { productId: productId, quantity: 2 };
+    } else {
+      existingItem.quantity = (existingItem.quantity || 1) + 1;
+    }
+  } else {
+    cart.push({ productId: productId, quantity: 1 });
+  }
   localStorage.setItem("cart", JSON.stringify(cart));
   alert("Added to cart!");
 }

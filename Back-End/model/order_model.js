@@ -19,7 +19,7 @@ const orderSchema = new mongoose.Schema({
     }
   ],
   total: { type: Number, required: true },
-  paymentMethod: { type: String, enum: ['COD', 'Khalti'], default: 'COD' },
+  paymentMethod: { type: String, enum: ['COD', 'Khalti', 'eSewa'], default: 'COD' },
   paymentStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
   status: { type: String, enum: ['Pending', 'Shipped', 'Delivered', 'Cancelled'], default: 'Pending' },
   createdAt: { type: Date, default: Date.now },

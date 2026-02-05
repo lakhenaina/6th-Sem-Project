@@ -15,6 +15,7 @@ import Product from './model/product_model.js';
 
 // routes
 import adminRoutes from "./routes/admin.js";
+import recommendationsRoutes from "./routes/recommendations.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +24,8 @@ const app = express();
 const PORT = 3001;
 
 // ========== MIDDLEWARE ==========
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(cors({
   origin: "http://localhost:5500"
 }));
@@ -30,10 +33,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // static serving
-// Serve HTML normally
-app.use(express.static(path.join(__dirname, 'FRONT-END')));
+app.use(express.static(path.join(__dirname, "..", 'Front-End')));
 
-// Protect only API routes
 // Protect only admin API routes
 app.use('/admin/api', (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -48,11 +49,9 @@ app.use('/admin/api', (req, res, next) => {
   }
 });
 
-
-
 // create uploads folder if missing
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads', { recursive: true });
+if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
+  fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
 }
 
 // ========== MULTER ==========
@@ -76,11 +75,10 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'All fields required' });
     }
 
-    // Validation regex (match frontend)
     const nameRegex = /^[A-Za-z\s]{1,20}$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
     const phoneRegex = /^[0-9]{10}$/;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%#?&])[A-Za-z\d@$!%#?&]{8,}$/;
 
     if (!nameRegex.test(name)) {
       return res.status(400).json({ success: false, message: 'Name must contain only letters, max 20 chars' });
@@ -95,7 +93,6 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Password must be 8 chars, include uppercase, lowercase, number, symbol' });
     }
 
-    // Check if email already exists
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ success: false, message: 'Email already registered' });
@@ -112,7 +109,6 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
-
 
 app.post('/login', async (req, res) => {
   try {
@@ -206,8 +202,6 @@ app.patch('/products/:id', async (req, res) => {
   }
 });
 
-
-// ========== ORDER ROUTES ==========
 // ========== ORDER ROUTES ==========
 app.post('/orders', async (req, res) => {
   try {
@@ -219,12 +213,10 @@ app.post('/orders', async (req, res) => {
       return res.status(400).json({ success: false, message: "No items in order" });
     }
 
-    // check required fields
     if (!senderName || !senderEmail || !deliveryLocation || !receiverPhone || !deliveryDate) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    // validate products exist
     const productIds = items.map(i => i.product);
     const products = await Product.find({ _id: { $in: productIds } });
 
@@ -232,11 +224,40 @@ app.post('/orders', async (req, res) => {
       return res.status(400).json({ success: false, message: "Some products not found" });
     }
 
-    const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
-    const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 101;
+    const lastOrder = await Order.findOne().sort({ orderNumber: -1 }).select('orderNumber');
+
+    // Safely compute the next order number. Ensure numeric coercion and
+    // fall back to aggregation or default starting value to avoid NaN.
+    let nextOrderNumber = 101;
+    if (lastOrder && lastOrder.orderNumber != null) {
+      const lastNum = Number(lastOrder.orderNumber);
+      if (Number.isFinite(lastNum)) {
+        nextOrderNumber = Math.max(101, Math.floor(lastNum) + 1);
+      } else {
+        // Attempt an aggregation fallback to derive a numeric max orderNumber
+        try {
+          const agg = await Order.aggregate([
+            { $group: { _id: null, maxOrder: { $max: "$orderNumber" } } }
+          ]);
+          const aggMax = agg && agg[0] && Number(agg[0].maxOrder);
+          if (Number.isFinite(aggMax)) {
+            nextOrderNumber = Math.max(101, Math.floor(aggMax) + 1);
+          }
+        } catch (e) {
+          // if aggregation fails, keep default nextOrderNumber
+          console.warn('Aggregation fallback for orderNumber failed:', e.message);
+        }
+      }
+    }
+
+    // Ensure nextOrderNumber is a finite number before saving
+    const safeOrderNumber = Number.isFinite(Number(nextOrderNumber)) ? Number(nextOrderNumber) : 101;
+
+    // Normalize paymentMethod (accept case-insensitive values like 'esewa')
+    const normalizedPaymentMethod = typeof paymentMethod === 'string' ? paymentMethod : '';
 
     const order = new Order({
-      orderNumber: nextOrderNumber,
+      orderNumber: safeOrderNumber,
       user: userId || null,
       items: items.map(i => ({
         product: i.product,
@@ -244,8 +265,8 @@ app.post('/orders', async (req, res) => {
         price: i.price
       })),
       total,
-      paymentMethod,
-      paymentStatus: paymentMethod.toLowerCase() === "esewa" ? "paid" : "pending",
+      paymentMethod: normalizedPaymentMethod,
+      paymentStatus: (typeof normalizedPaymentMethod === 'string' && normalizedPaymentMethod.toLowerCase() === "esewa") ? "paid" : "pending",
       status: "Pending",
       createdAt: new Date(),
       deliveryDetails: {
@@ -267,9 +288,6 @@ app.post('/orders', async (req, res) => {
   }
 });
 
-
-
-
 // ========== USER ROUTES ==========
 app.get('/users', async (req, res) => {
   try {
@@ -280,7 +298,6 @@ app.get('/users', async (req, res) => {
   }
 });
 
-// user orders
 app.get('/orders/:userId', async (req, res) => {
   try {
     const orders = await Order.find({ user: req.params.userId })
@@ -308,6 +325,8 @@ app.get('/search', async (req, res) => {
   }
 });
 
-
 // ========== START ==========
+// ========== RECOMMENDATIONS ROUTES ==========
+app.use("/api", recommendationsRoutes);
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
