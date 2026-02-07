@@ -78,11 +78,13 @@
       <!-- JS will inject order summary here -->
     </div>
 
-    <div class="section" id="senderDetails"></div>
+    <div class="section" id="orderItems"></div>
+
     <div class="section" id="receiverDetails"></div>
     <div class="section" id="deliveryDetails"></div>
 
     <button id="markPaymentBtn" style="display:none">Mark Payment Received</button>
+    <button id="deleteOrderBtn" style="background:#d32f2f">Delete Order</button>
   </div>
 
   <script>
@@ -95,49 +97,89 @@
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get("id");
 
-    document.addEventListener('DOMContentLoaded', loadOrder);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadOrder();
+      document.getElementById("deleteOrderBtn").addEventListener("click", deleteOrderHandler);
+    });
 
     function loadOrder() {
       fetch(`http://localhost:3001/admin/orders/${orderId}`, {
         headers: { Authorization: "Bearer " + token }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => {
+        console.log("Full API Response:", data);
         const order = data.data;
 
+        if (!order) {
+          document.getElementById("orderSummary").innerHTML = '<p style="color:red;">Order not found</p>';
+          return;
+        }
+
+        console.log("Order Structure:", {
+          user: order.user,
+          deliveryDetails: order.deliveryDetails,
+          items: order.items,
+          "timeSlot keys": order.deliveryDetails ? Object.keys(order.deliveryDetails) : 'No deliveryDetails'
+        });
+
         document.getElementById("orderSummary").innerHTML = `
-          <h2>Order #${order.orderNumber}</h2>
+          <h2>Order #${order.orderNumber || order._id}</h2>
           <p><strong>Status:</strong> ${order.status}</p>
           <p><strong>Total Price:</strong> Rs. ${order.total}</p>
           <p>
             <strong>Payment Status:</strong> 
-            <span class="badge ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}">${order.paymentStatus.toUpperCase()}</span>
+            <span class="badge ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}">${order.paymentStatus?.toUpperCase() || 'PENDING'}</span>
           </p>
           <p>
             <strong>Payment Method:</strong>
-            <span class="badge ${order.paymentMethod === 'COD' ? 'cod' : 'khalti'}">${order.paymentMethod}</span>
+            <span class="badge ${order.paymentMethod === 'COD' ? 'cod' : 'khalti'}">${order.paymentMethod || 'COD'}</span>
           </p>
           <p><strong>Order Time:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
         `;
 
-        document.getElementById("senderDetails").innerHTML = `
-          <h2>Sender Details</h2>
-          <p><strong>Full Name:</strong> ${order.deliveryDetails?.senderName || 'N/A'}</p>
-          <p><strong>Phone:</strong> ${order.deliveryDetails?.senderPhone || 'N/A'}</p>
-          <p><strong>Email:</strong> ${order.deliveryDetails?.senderEmail || 'N/A'}</p>
-          <p><strong>Delivery Location:</strong> ${order.deliveryDetails?.deliveryLocation || 'N/A'}</p>
-        `;
+        // Display order items
+        let itemsHTML = '<h2>Order Items</h2>';
+        if (order.items && order.items.length > 0) {
+          itemsHTML += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;">';
+          itemsHTML += '<tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">Product</th><th style="border:1px solid #ddd;padding:8px;">Quantity</th><th style="border:1px solid #ddd;padding:8px;">Price</th></tr>';
+          order.items.forEach(item => {
+            const productName = item.product?.title || item.productName || 'Unknown Product';
+            const quantity = item.quantity || 1;
+            const price = item.product?.price || item.price || 0;
+            itemsHTML += `<tr><td style="border:1px solid #ddd;padding:8px;">${productName}</td><td style="border:1px solid #ddd;padding:8px;text-align:center;">${quantity}</td><td style="border:1px solid #ddd;padding:8px;">Rs. ${price}</td></tr>`;
+          });
+          itemsHTML += '</table></div>';
+        } else {
+          itemsHTML += '<p>No items found</p>';
+        }
+        document.getElementById("orderItems").innerHTML = itemsHTML;
 
         document.getElementById("receiverDetails").innerHTML = `
-          <h2>Receiver Details</h2>
+          <h2>Receiver</h2>
+          <p><strong>Full Name:</strong> ${order.deliveryDetails?.senderName || order.user?.name || 'N/A'}</p>
+          <p><strong>Phone:</strong> ${order.deliveryDetails?.senderPhone || order.user?.phoneNumber || 'N/A'}</p>
+          <p><strong>Email:</strong> ${order.deliveryDetails?.senderEmail || order.user?.email || 'N/A'}</p>
+          <p><strong>Delivery Location:</strong> ${order.deliveryDetails?.deliveryLocation || 'N/A'}</p>
           <p><strong>Contact 1:</strong> ${order.deliveryDetails?.receiverContact1 || 'N/A'}</p>
           <p><strong>Contact 2:</strong> ${order.deliveryDetails?.receiverContact2 || 'N/A'}</p>
         `;
 
+        // Check for time slot field - try multiple possible field names
+        const timeSlot = order.deliveryDetails?.deliveryTimeSlot || 
+                         order.deliveryDetails?.timeSlot || 
+                         order.deliveryDetails?.time_slot || 
+                         'N/A';
+        
         document.getElementById("deliveryDetails").innerHTML = `
           <h2>Delivery Details</h2>
           <p><strong>Delivery Date:</strong> ${order.deliveryDetails?.deliveryDate || 'N/A'}</p>
-          <p><strong>Time Slot:</strong> ${order.deliveryDetails?.deliveryTimeSlot || 'N/A'}</p>
+          <p><strong>Time Slot:</strong> ${timeSlot}</p>
         `;
 
         if (order.paymentStatus === "pending") {
@@ -146,35 +188,63 @@
         }
       })
       .catch(err => {
-        console.error(err);
-        alert("Error loading order");
+        console.error("Error loading order:", err);
+        document.getElementById("orderSummary").innerHTML = '<p style="color:red;">Error loading order details. Check console for details. Error: ' + err.message + '</p>';
       });
     }
 
-   function markPayment(orderId) {
-  fetch(`http://localhost:3001/admin/orders/${orderId}/payment`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token
+    function markPayment(orderId) {
+      fetch(`http://localhost:3001/admin/orders/${orderId}/payment`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        }
+      })
+      .then(res => res.json())
+      .then(() => {
+        alert("Payment marked as received");
+        setTimeout(() => {
+          location.reload();
+        }, 500);
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error updating payment");
+      });
     }
-  })
-  .then(res => res.json())
-  .then(() => {
-    alert("Payment marked as received");
-    // delay to ensure MongoDB saves it fully
-    setTimeout(() => {
-      location.reload();
-    }, 500);
-  })
-  .catch(err => {
-    console.error(err);
-    alert("Error updating payment");
-  });
-}
 
+    function deleteOrderHandler() {
+      if (!confirm(`Are you sure you want to delete this order? This action cannot be undone.`)) {
+        return;
+      }
 
-    
+      console.log("Attempting to delete order ID:", orderId);
+
+      fetch(`http://localhost:3001/admin/orders/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        }
+      })
+      .then(res => {
+        console.log("Delete response status:", res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log("Delete successful:", data);
+        alert("Order deleted successfully");
+        window.location.href = "admin-orders.html";
+      })
+      .catch(err => {
+        console.error("Error deleting order:", err);
+        alert("Error deleting order: " + err.message);
+      });
+    }
   </script>
 </body>
 </html>

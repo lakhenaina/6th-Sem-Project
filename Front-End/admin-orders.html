@@ -153,6 +153,7 @@
                     <a href="order-detail.html?id=${order._id}" class="view-button">
                       <button>View</button>
                     </a>
+                    <button onclick="deleteOrder('${order._id}')" style="background-color:#d32f2f;">Delete</button>
                   </td>
                 </tr>
               `;
@@ -182,6 +183,38 @@
         .catch(err => {
           console.error(err);
           alert("Error updating order status");
+        });
+    }
+
+    function deleteOrder(orderId) {
+      if (!confirm("Are you sure you want to delete this order? This action cannot be undone.")) {
+        return;
+      }
+      
+      console.log("Deleting order:", orderId);
+      
+      fetch(`http://localhost:3001/admin/orders/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        }
+      })
+        .then(res => {
+          console.log("Delete response status:", res.status);
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          console.log("Delete successful:", data);
+          alert("Order deleted successfully!");
+          loadOrders();
+        })
+        .catch(err => {
+          console.error("Error deleting order:", err);
+          alert("Error deleting order: " + err.message);
         });
     }
   </script>

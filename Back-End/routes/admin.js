@@ -103,17 +103,25 @@ router.delete("/users/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Delete failed" });
   }
 });
-// mark payment as received
-// router.patch("/orders/:orderNumber/payment", async (req, res) => {
-//   try {
-//     await Order.findOneAndUpdate({ orderNumber: req.params.orderNumber }, { paymentStatus: "paid" });
-//     res.json({ message: "Payment marked as received" });
-//   } catch (err) {
-//     console.error("markPayment error:", err);
-//     res.status(500).json({ message: "Error updating payment status" });
-//   }
-// });
-// mark payment as received
+// ==========================
+// DELETE order
+// ==========================
+router.delete("/orders/:id", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    res.json({ success: true, message: "Order deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting order:", err);
+    res.status(500).json({ success: false, message: "Error deleting order" });
+  }
+});
+
+// ==========================
+// PATCH mark payment as received
+// ==========================
 router.patch("/orders/:id/payment", async (req, res) => {
   try {
     console.log(`Trying to mark payment for order ID: ${req.params.id}`);
